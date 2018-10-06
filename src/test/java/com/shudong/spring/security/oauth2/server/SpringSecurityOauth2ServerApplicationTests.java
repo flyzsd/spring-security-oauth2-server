@@ -1,4 +1,4 @@
-package com.shudong.spring.springsecurityoauth2server;
+package com.shudong.spring.security.oauth2.server;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
