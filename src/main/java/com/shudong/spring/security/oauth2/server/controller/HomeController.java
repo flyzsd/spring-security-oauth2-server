@@ -9,14 +9,10 @@ import java.security.Principal;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/user")
-public class UserController {
+@RequestMapping("/")
+public class HomeController {
     @RequestMapping("/")
-    public Principal user(Principal principal) {
-        if (principal instanceof Authentication) {
-            Authentication authentication = (Authentication) principal;
-            log.info("authentication.getPrincipal = {}", authentication.getPrincipal());
-        }
-        return principal;
+    public String hello() {
+        return "hello";
     }
 }

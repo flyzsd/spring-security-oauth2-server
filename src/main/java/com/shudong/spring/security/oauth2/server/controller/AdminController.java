@@ -9,8 +9,8 @@ import java.security.Principal;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/user")
-public class UserController {
+@RequestMapping("/api/admin")
+public class AdminController {
     @RequestMapping("/")
     public Principal user(Principal principal) {
         if (principal instanceof Authentication) {

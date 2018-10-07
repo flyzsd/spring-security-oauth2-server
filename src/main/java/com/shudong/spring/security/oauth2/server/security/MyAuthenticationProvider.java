@@ -8,7 +8,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.Objects;
 
 @Component
@@ -18,8 +17,10 @@ public class MyAuthenticationProvider implements AuthenticationProvider {
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
 
-        if ("shudong".equals(name) && "password".equals(password)) {
+        if ("admin".equals(name) && "password".equals(password)) {
             return new UsernamePasswordAuthenticationToken(name, password, AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_ADMIN"));
+        } else if ("shudong".equals(name) && "password".equals(password)) {
+            return new UsernamePasswordAuthenticationToken(name, password, AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER"));
         } else {
             throw new BadCredentialsException("External system authentication failed");
         }
