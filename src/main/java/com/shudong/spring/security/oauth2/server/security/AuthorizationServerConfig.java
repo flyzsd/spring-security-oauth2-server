@@ -1,10 +1,9 @@
-package com.shudong.spring.security.oauth2.server.config;
+package com.shudong.spring.security.oauth2.server.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -13,32 +12,24 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+@RequiredArgsConstructor
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
-    static final String CLIEN_ID = "oauth2-client-id";
-    static final String CLIENT_SECRET = "oauth2-client-secret";
-    static final String GRANT_TYPE_PASSWORD = "password";
-    static final String AUTHORIZATION_CODE = "authorization_code";
-    static final String REFRESH_TOKEN = "refresh_token";
-    static final String IMPLICIT = "implicit";
-    static final String SCOPE_READ = "read";
-    static final String SCOPE_WRITE = "write";
-    static final int ACCESS_TOKEN_VALIDITY_SECONDS = 1 * 60 * 60;
-    static final int FREFRESH_TOKEN_VALIDITY_SECONDS = 6 * 60 * 60;
+    private static final String CLIEN_ID = "oauth2-client-id";
+    private static final String CLIENT_SECRET = "oauth2-client-secret";
+    private static final String RESOURCE_ID = "oauth2_resource_id";
+    private static final String GRANT_TYPE_PASSWORD = "password";
+    private static final String REFRESH_TOKEN = "refresh_token";
+    private static final String SCOPE_READ = "read";
+    private static final String SCOPE_WRITE = "write";
+    private static final int ACCESS_TOKEN_VALIDITY_SECONDS = 1 * 60 * 60;
+    private static final int FREFRESH_TOKEN_VALIDITY_SECONDS = 24 * 60 * 60;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    @Bean
-    public JwtAccessTokenConverter accessTokenConverter() {
-        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey("as466gf");
-        return converter;
-    }
+    private final MyUserDetailsService userDetailsService;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtAccessTokenConverter jwtAccessTokenConverter;
 
     /**
      * Configure the ClientDetailsService, declaring individual clients and their properties.
@@ -50,11 +41,11 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     public void configure(ClientDetailsServiceConfigurer configurer) throws Exception {
         configurer.inMemory()
             .withClient(CLIEN_ID)
-            .secret(bCryptPasswordEncoder.encode(CLIENT_SECRET))
-            .resourceIds("oauth2_resource_id")
+            .secret(passwordEncoder.encode(CLIENT_SECRET))
+            .resourceIds(RESOURCE_ID)
             .authorities("ROLE_TRUSTED_CLIENT")
             .scopes(SCOPE_READ, SCOPE_WRITE)
-            .authorizedGrantTypes(GRANT_TYPE_PASSWORD, AUTHORIZATION_CODE, REFRESH_TOKEN, IMPLICIT)
+            .authorizedGrantTypes(GRANT_TYPE_PASSWORD, REFRESH_TOKEN)
             .accessTokenValiditySeconds(ACCESS_TOKEN_VALIDITY_SECONDS)
             .refreshTokenValiditySeconds(FREFRESH_TOKEN_VALIDITY_SECONDS);
     }
@@ -67,8 +58,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         endpoints
-            .tokenStore(new JwtTokenStore(accessTokenConverter()))
-            .accessTokenConverter(accessTokenConverter())
+            .tokenStore(new JwtTokenStore(jwtAccessTokenConverter))
+            .accessTokenConverter(jwtAccessTokenConverter)
+            .userDetailsService(userDetailsService)
             .authenticationManager(authenticationManager);
     }
 
@@ -82,7 +74,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
         //allowing access to the token only for clients with 'ROLE_TRUSTED_CLIENT' authority
         oauthServer
-            .tokenKeyAccess("hasAuthority('ROLE_TRUSTED_CLIENT')")
-            .checkTokenAccess("hasAuthority('ROLE_TRUSTED_CLIENT')");
+            .tokenKeyAccess("hasAuthority('ROLE_TRUSTED_CLIENT')")          //for /oauth/token_key endpoint
+            .checkTokenAccess("hasAuthority('ROLE_TRUSTED_CLIENT')");       //for /oauth/check_token endpoint
     }
 }

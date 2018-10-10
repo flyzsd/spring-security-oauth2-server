@@ -17,12 +17,3 @@ curl -v oauth2-client-id:oauth2-client-secret@localhost:8080/oauth/token -d "gra
 
 curl -v -H "Authorization: Bearer {access_token}" http://localhost:8080/api/admin
 curl -v -H "Authorization: Bearer {access_token}" http://localhost:8080/api/user
-
-**Authorization Code**
-curl -v http://localhost:8080/oauth/authorize -d "response_type=code&client_id=oauth2-client-id&redirect_uri=CALLBACK_URL&scope=read"
-
-**Implicit**
-curl -v http://localhost:8080/oauth/authorize -d "response_type=token&client_id=oauth2-client-id&redirect_uri=CALLBACK_URL&scope=read"
-
-**Client Credentials Flow**
-curl -v http://localhost:8080/oauth/token -d "grant_type=client_credentials&client_id=oauth2-client-id&client_secret=oauth2-client-secret"
